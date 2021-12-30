@@ -37,10 +37,10 @@ module.exports = {
                     - Added \`Developer Only\`
                     - Added \`Maintenance Mode\`
                 `},
-                {name: `1.2.3`, value: "- Added a new commands: \`NSFW\`", inline: false},
-                {name: `1.2.2`, value: "- Added a new commands: \`Anime\`", inline: false},
-                {name: `1.2.1`, value: "- Added a new commands: \`Image\`", inline: false},
-                {name: `1.2.0`, value: "- Added a new system: \`Music\`", inline: false},
+                // {name: `1.2.3`, value: "- Added a new commands: \`NSFW\`", inline: false},
+                // {name: `1.2.2`, value: "- Added a new commands: \`Anime\`", inline: false},
+                // {name: `1.2.1`, value: "- Added a new commands: \`Image\`", inline: false},
+                // {name: `1.2.0`, value: "- Added a new system: \`Music\`", inline: false},
             )
             .setFooter(`Requested by ${member.displayName}`, member.user.displayAvatarURL())
             .setTimestamp();
