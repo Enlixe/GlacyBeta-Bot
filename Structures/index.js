@@ -65,8 +65,12 @@ fetch(`https://api.github.com/repos/${updateLink}/releases/latest`)
                     return;
                 }
                 log.info( `EnlX > Update | Pull complete.` );
+                log.info( `EnlX > Update | Restarting...` );
+                process.exit();
             });
         }
+        log.info( `EnlX > Update | You are running the latest version of EnlX.` );
+        log.info( `EnlX > Update | Current Version: v${version} - Github Version: ${body.tag_name}` );
     })
     .catch(err => {
         log.error(`EnlX > Update | There was an error checking for updates!\n${err}`);
