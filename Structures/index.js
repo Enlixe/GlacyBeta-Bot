@@ -56,7 +56,7 @@ fetch(`https://api.github.com/repos/${updateLink}/releases/latest`)
             log.warn( `EnlX > Update | New Version: ${body.tag_name}` );
             log.warn( `EnlX > Update | Download: ${body.zipball_url}` );
 
-            // Git Pull
+            // Git Pull and Restart
             log.info( `EnlX > Update | Pulling latest changes...` );
             const { exec } = require('child_process');
             exec(`git pull https://github.com/${updateLink}`, (err, stdout, stderr) => {
@@ -66,11 +66,12 @@ fetch(`https://api.github.com/repos/${updateLink}/releases/latest`)
                 }
                 log.info( `EnlX > Update | Pull complete.` );
                 log.info( `EnlX > Update | Restarting...` );
-                process.exit();
+                process.exit(1);
             });
+        } else {
+            log.info( `EnlX > Update | You are running the latest version of EnlX.` );
+            log.info( `EnlX > Update | Current Version: v${version} - Github Version: ${body.tag_name}` );
         }
-        log.info( `EnlX > Update | You are running the latest version of EnlX.` );
-        log.info( `EnlX > Update | Current Version: v${version} - Github Version: ${body.tag_name}` );
     })
     .catch(err => {
         log.error(`EnlX > Update | There was an error checking for updates!\n${err}`);
