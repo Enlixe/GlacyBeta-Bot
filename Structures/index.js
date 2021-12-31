@@ -41,6 +41,37 @@ log = {
 };
 log.info('EnlX > Loading EnlX...');
 // ========================================================
+//* Check for updates on GitHub
+log.info('EnlX > Update | Checking for updates...');
+
+const updateLink = "Enlixe/GlacyBeta-Bot"
+const version = require('./package.json').version;
+const fetch = require('node-fetch');
+fetch(`https://api.github.com/repos/${updateLink}/releases/latest`)
+    .then(res => res.json())
+    .then(async(body) => {
+        if (body.name > version) {
+            log.warn( `EnlX > Update | There is a new version of EnlX available !`);
+            log.warn( `EnlX > Update | Current Version: v${version}` );
+            log.warn( `EnlX > Update | New Version: ${body.tag_name}` );
+            log.warn( `EnlX > Update | Download: ${body.zipball_url}` );
+
+            // Git Pull
+            log.info( `EnlX > Update | Pulling latest changes...` );
+            const { exec } = require('child_process');
+            exec(`git pull https://github.com/${updateLink}`, (err, stdout, stderr) => {
+                if (err) {
+                    log.error( `EnlX > Update | Error: ${err}` );
+                    return;
+                }
+                log.info( `EnlX > Update | Pull complete.` );
+            });
+        }
+    })
+    .catch(err => {
+        log.error(`EnlX > Update | There was an error checking for updates!\n${err}`);
+    });
+// ========================================================
 //* Cooldown system
 client.cooldown = new Collection();
 // ========================================================
