@@ -45,7 +45,7 @@ log.info('EnlX > Loading EnlX...');
 log.info('EnlX > Update | Checking for updates...');
 
 const updateLink = "Enlixe/GlacyBeta-Bot"
-const version = require('./package.json').version;
+const version = require('../package.json').version;
 const fetch = require('node-fetch');
 fetch(`https://api.github.com/repos/${updateLink}/releases/latest`)
     .then(res => res.json())
