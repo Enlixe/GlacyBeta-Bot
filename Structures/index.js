@@ -12,30 +12,33 @@ const chalk = require('chalk');
 client.commands = new Collection();
 
 // ========================================================
+//* Global Variables
+global.color = require('./config.json').colors;
+// ========================================================
 //* Console Logging With Chalk Colors
 log = {
-    info: function(message) {
+    info: function (message) {
         console.log(
             chalk.white(`[${new Date().toLocaleString()}]`),
-            chalk.blue(message),
+            chalk.blue(message)
         );
     },
-    log: function(message) {
+    log: function (message) {
         console.log(
             chalk.white(`[${new Date().toLocaleString()}]`),
-            chalk.green(message),
+            chalk.green(message)
         );
     },
-    warn: function(message) {
+    warn: function (message) {
         console.log(
             chalk.white(`[${new Date().toLocaleString()}]`),
-            chalk.yellow(message),
+            chalk.yellow(message)
         );
     },
-    error: function(message) {
+    error: function (message) {
         console.log(
             chalk.white(`[${new Date().toLocaleString()}]`),
-            chalk.red(message),
+            chalk.red(message)
         );
     },
 };
@@ -43,38 +46,46 @@ log.info('EnlX > Loading EnlX...');
 // ========================================================
 //* Check for updates on GitHub
 log.info('EnlX > Update | Checking for updates...');
-
-const updateLink = "Enlixe/GlacyBeta-Bot"
+const updateLink = 'Enlixe/GlacyBeta-Bot';
 const version = require('../package.json').version;
 const fetch = require('node-fetch');
 fetch(`https://api.github.com/repos/${updateLink}/releases/latest`)
-    .then(res => res.json())
-    .then(async(body) => {
+    .then((res) => res.json())
+    .then(async (body) => {
         if (body.name > version) {
-            log.warn( `EnlX > Update | There is a new version of EnlX available !`);
-            log.warn( `EnlX > Update | Current Version: v${version}` );
-            log.warn( `EnlX > Update | New Version: ${body.tag_name}` );
-            log.warn( `EnlX > Update | Download: ${body.zipball_url}` );
+            log.warn(`EnlX > Update | New update available ! ${body.tag_name}`);
+            log.warn(`EnlX > Update | Current Version: v${version}`);
+            log.warn(`EnlX > Update | New Version: ${body.tag_name}`);
+            log.warn(`EnlX > Update | Download: ${body.zipball_url}`);
 
             // Git Pull and Restart
-            log.info( `EnlX > Update | Pulling latest changes...` );
+            log.info(`EnlX > Update | Pulling latest changes...`);
             const { exec } = require('child_process');
-            exec(`git pull https://github.com/${updateLink}`, (err, stdout, stderr) => {
-                if (err) {
-                    log.error( `EnlX > Update | Error: ${err}` );
-                    return;
+            exec(
+                `git pull https://github.com/${updateLink}`,
+                (err, stdout, stderr) => {
+                    if (err) {
+                        log.error(`EnlX > Update | Error: ${err}`);
+                        return;
+                    }
+                    log.info(`EnlX > Update | Pull complete.`);
+                    log.info(`EnlX > Update | Restarting...`);
+                    process.exit(1);
                 }
-                log.info( `EnlX > Update | Pull complete.` );
-                log.info( `EnlX > Update | Restarting...` );
-                process.exit(1);
-            });
+            );
         } else {
-            log.info( `EnlX > Update | You are running the latest version of EnlX.` );
-            log.info( `EnlX > Update | Current Version: v${version} - Github Version: ${body.tag_name}` );
+            log.info(
+                `EnlX > Update | You are running the latest version of EnlX.`
+            );
+            log.info(
+                `EnlX > Update | Current Version: v${version} - Github Version: ${body.tag_name}`
+            );
         }
     })
-    .catch(err => {
-        log.error(`EnlX > Update | There was an error checking for updates!\n${err}`);
+    .catch((err) => {
+        log.error(
+            `EnlX > Update | There was an error checking for updates!\n${err}`
+        );
     });
 // ========================================================
 //* Cooldown system

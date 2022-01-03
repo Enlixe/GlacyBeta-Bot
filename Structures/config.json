@@ -11,9 +11,13 @@
     "ticketTranscriptChannel": "922728221190000650",
 
     "colors": {
-        "default": "0x00FF00",
-        "error": "0xFF0000",
+        "default": "0x00FFDD",
+
         "success": "0x00FF00",
-        "warning": "0xFFD700"
+
+        "warning": "0xFFD700",
+
+        "error": "0xFF0000",
+        "danger": "0xFF0000"
     }
 }

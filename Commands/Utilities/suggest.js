@@ -1,68 +1,86 @@
-const { MessageEmbed, Client } = require("discord.js");
-const wait = require('util').promisify(setTimeout);
+const {
+    CommandInteraction,
+    MessageActionRow,
+    MessageEmbed,
+    MessageButton,
+} = require('discord.js');
+const DB = require('../../Structures/Schemas/SuggestDB');
 
 module.exports = {
-	name: "suggest",
-	description: "Create a suggestion in an orginized matter.",
-	usage: "/suggest <type> <title> <desc>",
-	cooldown: 60000,
-	options: [
-		{
-			name: "type",
-			description: "Select the type.",
-			required: true,
-			type: "STRING",
-			choices: [
-				{
-					name: "Command",
-					value: "Command",
-				},
-				{
-					name: "Event",
-					value: "Event",
-				},
-				{
-					name: "System",
-					value: "System",
-				},
-			],
-		},
-		{
-			name: "name",
-			description: "Provide a name for your suggestion.",
-			type: "STRING",
-			required: true,
-		},
-		{
-			name: "description",
-			description: "Describe the suggestion.",
-			type: "STRING",
-			required: true,
-		},
-	],
-	/**
+    name: 'suggest',
+    description: 'Suggest something to the bot owner.',
+    usage: 'suggest <suggestion>',
+    permissions: ['ADMINISTRATOR'],
+    options: [
+        {
+            name: 'type',
+            description: 'The type of suggestion.',
+            type: 'STRING',
+            required: true,
+            choices: [
+                { name: 'Command', value: 'command' },
+                { name: 'Event Listener', value: 'event listener' },
+                { name: 'System', value: 'system' },
+                { name: 'Other', value: 'other' },
+            ],
+        },
+        {
+            name: 'suggestion',
+            description: 'The suggestion to be made.',
+            type: 'STRING',
+            required: true,
+        },
+    ],
+    /**
      * @param {CommandInteraction} interaction
-	 * @param {Client} client
      */
-	async execute(interaction, client) {
-		const { options } = interaction;
+    async execute(interaction) {
+        const { options, guildId, member, user } = interaction;
+        const type = options.getString('type');
+        const suggestion = options.getString('suggestion');
 
-		const type = options.getString("type");
-		const name = options.getString("name");
-		const description = options.getString("description");
+        const embed = new MessageEmbed()
+            .setColor(color.default)
+            .setAuthor(`${user.tag}`, user.displayAvatarURL({ dynamic: true }))
+            .addFields(
+                { name: 'Suggestion', value: suggestion, inline: false },
+                { name: 'Type', value: type, inline: true },
+                { name: 'Status', value: 'Pending', inline: true }
+            )
+            .setTimestamp();
 
-		const response = new MessageEmbed()
-			.setColor("AQUA")
-			.setDescription(`**${interaction.member} has suggested a** \`${type}\``)
-			.addField("Name", `${name}`, true)
-			.addField("Description", `${description}`, true);
+        const buttons = new MessageActionRow();
+        buttons.addComponents(
+            new MessageButton()
+                .setCustomId('suggest-accept')
+                .setLabel('✅ Accept')
+                .setStyle('PRIMARY'),
+            new MessageButton()
+                .setCustomId('suggest-decline')
+                .setLabel('⛔ Decline')
+                .setStyle('DANGER')
+        );
 
-		const message = await interaction.reply({ embeds: [response], fetchReply: true });
-		message.react("<:like:813322569523920946>");
-		message.react("<:dislike:813322644509556756>");
+        try {
+            const M = await interaction.reply({
+                embeds: [embed],
+                components: [buttons],
+                fetchReply: true,
+            });
 
-		// wait 3 sec
-		await wait(3000);
-		client.users.cache.get('524805915526955048').send({ embeds: [response] });
-	},
+            await DB.create({
+                GuildID: guildId,
+                MessageID: M.id,
+                Details: [
+                    {
+                        MemberID: member.id,
+                        Type: type,
+                        Suggestion: suggestion,
+                    },
+                ],
+            });
+        } catch (err) {
+            log.error(err);
+        }
+    },
 };

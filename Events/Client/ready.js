@@ -31,9 +31,9 @@ module.exports = {
 					if(activity === activity.length) return activity = 0;
 					activity++
 					client.user.setActivity(activites[Math.floor(Math.random() * activites.length)])
-				}, 1000 * 60);
+				}, 60 * 1000);
             }
-        }, 30000);
+        }, 60 * 1000);
 
 		// ========================================================
 		//* Database Connection
