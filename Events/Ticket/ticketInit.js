@@ -5,7 +5,7 @@ const {
     MessageButton,
 } = require('discord.js');
 const DB = require('../../Structures/Schemas/Ticket');
-const { ticketCategory } = require('../../Structures/config.json');
+const TicketSetupData = require('../../Structures/Schemas/TicketSetup');
 
 module.exports = {
     name: 'interactionCreate',
@@ -16,74 +16,80 @@ module.exports = {
         if (!interaction.isButton()) return;
         const { guild, member, customId } = interaction;
 
-        if (!['player', 'bug', 'other'].includes(customId)) return;
+        const Data = await TicketSetupData.findOne({ GuildID: guild.id });
+        if (!Data) return;
+        if (!Data.Buttons.includes(customId)) return;
 
-        // Return if there is exist
+        //* Return if there is exist
         const exist = await DB.findOne({
             GuildID: guild.id,
-            MemberID: member.id,
+            MembersID: {
+                $in: member.id,
+            },
             Closed: false,
         });
         if (exist)
-            return interaction
-                .reply({
-                    content: `${member} You have a ticket open already`,
-                    ephemeral: true,
-                })
-                .then(() => {
-                    setTimeout(() => {
-                        interaction.deleteReply().catch(() => {});
-                    }, 3000);
-                });
+            return interaction.reply({
+                content: `${member} You have a ticket open already`,
+                ephemeral: true,
+            });
 
         const ID = Math.floor(Math.random() * 90000) + 10000;
 
         await guild.channels
-            .create(
-                `ticket-${customId + `-${interaction.user.username}-` + ID}`,
-                {
-                    type: 'GUILD_TEXT',
-                    parent: ticketCategory,
-                    permissionOverwrites: [
-                        {
-                            id: member.id,
-                            allow: [
-                                'SEND_MESSAGES',
-                                'VIEW_CHANNEL',
-                                'READ_MESSAGE_HISTORY',
-                            ],
-                        },
-                        {
-                            id: interaction.guild.roles.everyone,
-                            deny: [
-                                'VIEW_CHANNEL',
-                                'SEND_MESSAGES',
-                                'READ_MESSAGE_HISTORY',
-                            ],
-                        },
-                    ],
-                }
-            )
+            .create(`${customId + `-${interaction.user.username}-` + ID}`, {
+                type: 'GUILD_TEXT',
+                parent: Data.Category,
+                permissionOverwrites: [
+                    {
+                        id: member.id,
+                        allow: [
+                            'SEND_MESSAGES',
+                            'VIEW_CHANNEL',
+                            'READ_MESSAGE_HISTORY',
+                        ],
+                    },
+                    {
+                        id: Data.Handlers,
+                        allow: [
+                            'SEND_MESSAGES',
+                            'VIEW_CHANNEL',
+                            'READ_MESSAGE_HISTORY',
+                        ],
+                    },
+                    {
+                        id: interaction.guild.roles.everyone,
+                        deny: [
+                            'VIEW_CHANNEL',
+                            'SEND_MESSAGES',
+                            'READ_MESSAGE_HISTORY',
+                        ],
+                    },
+                ],
+            })
             .then(async (channel) => {
                 await DB.create({
                     GuildID: guild.id,
-                    MemberID: member.id,
+                    MembersID: member.id,
                     TicketID: ID,
                     ChannelID: channel.id,
                     Closed: false,
                     Locked: false,
                     Type: customId,
+                    Claimed: false,
                 });
 
                 const Embed = new MessageEmbed()
-                    .setAuthor(
-                        `${guild.name} | Ticket: ${ID}`,
-                        member.user.displayAvatarURL({ dynamic: true })
-                    )
+                    .setAuthor({
+                        name: `${guild.name} | Ticket: ${ID}`,
+                        iconURL: member.user.displayAvatarURL({
+                            dynamic: true,
+                        }),
+                    })
                     .setDescription(
                         `Hello there, \n The staff will be here as soon as possible  meanwhile tell us about your issue!\nThank You!`
                     )
-                    .setFooter(`The buttons below are STAFF ONLY`);
+                    .setFooter({ text: `The buttons below are STAFF ONLY` });
 
                 const Buttons = new MessageActionRow();
                 Buttons.addComponents(
@@ -101,7 +107,12 @@ module.exports = {
                         .setCustomId('unlock')
                         .setLabel('Unlock')
                         .setStyle('SECONDARY')
-                        .setEmoji('🔓')
+                        .setEmoji('🔓'),
+                    new MessageButton()
+                        .setCustomId('claim')
+                        .setLabel('Claim')
+                        .setStyle('PRIMARY')
+                        .setEmoji('✋')
                 );
 
                 channel.send({

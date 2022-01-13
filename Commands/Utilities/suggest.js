@@ -18,10 +18,10 @@ module.exports = {
             type: 'STRING',
             required: true,
             choices: [
-                { name: 'Command', value: 'command' },
-                { name: 'Event Listener', value: 'event listener' },
-                { name: 'System', value: 'system' },
-                { name: 'Other', value: 'other' },
+                { name: 'Command', value: 'Command' },
+                { name: 'Event', value: 'Event' },
+                { name: 'System', value: 'System' },
+                { name: 'Other', value: 'Other' },
             ],
         },
         {
@@ -45,7 +45,7 @@ module.exports = {
             .addFields(
                 { name: 'Suggestion', value: suggestion, inline: false },
                 { name: 'Type', value: type, inline: true },
-                { name: 'Status', value: 'Pending', inline: true }
+                { name: 'Status', value: '🟡 | Pending', inline: true }
             )
             .setTimestamp();
 

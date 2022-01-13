@@ -7,7 +7,7 @@ module.exports = {
      * @param {ButtonInteraction} interaction
      */
     async execute(interaction) {
-        if (!interaction.isButton) return;
+        if (!interaction.isButton()) return;
         if (!interaction.member.permissions.has('ADMINISTRATOR'))
             return interaction.reply({
                 content: "You don't have permission to use this command.",
@@ -16,6 +16,7 @@ module.exports = {
 
         const { guildId, customId, message } = interaction;
 
+        if (!['suggest-accept', 'suggest-decline'].includes(customId)) return;
         DB.findOne(
             { GuildID: guildId, MessageID: message.id },
             async (err, data) => {
@@ -31,25 +32,33 @@ module.exports = {
 
                 switch (customId) {
                     case 'suggest-accept':
-                        embed.fields[2].value = 'Accepted';
+                        embed.fields[2] = {
+                            name: 'Status',
+                            value: '🟢 | Accepted',
+                            inline: true,
+                        };
                         message.edit({
                             embeds: [embed.setColor(color.success)],
+                            components: [],
                         });
                         return interaction.reply({
                             content: 'Suggestion accepted.',
                             ephemeral: true,
                         });
-                        break;
                     case 'suggest-decline':
-                        embed.fields[2].value = 'Declined';
+                        embed.fields[2] = {
+                            name: 'Status',
+                            value: '🔴 | Declined',
+                            inline: true,
+                        };
                         message.edit({
                             embeds: [embed.setColor(color.danger)],
+                            components: [],
                         });
                         return interaction.reply({
                             content: 'Suggestion declined.',
                             ephemeral: true,
                         });
-                        break;
                 }
             }
         );

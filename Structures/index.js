@@ -14,6 +14,7 @@ client.commands = new Collection();
 // ========================================================
 //* Global Variables
 global.color = require('./config.json').colors;
+global.channels = require('./config.json').channels;
 // ========================================================
 //* Console Logging With Chalk Colors
 log = {
@@ -43,6 +44,8 @@ log = {
     },
 };
 log.info('EnlX > Loading EnlX...');
+log.info(`EnlX > Version: ${require('../package.json').version}`);
+log.info(`EnlX > Author: ${require('../package.json').author}`);
 // ========================================================
 //* Check for updates on GitHub
 log.info('EnlX > Update | Checking for updates...');

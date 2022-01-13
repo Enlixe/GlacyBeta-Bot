@@ -1,7 +1,8 @@
 const { ButtonInteraction, MessageEmbed } = require('discord.js');
 const { createTranscript } = require('discord-html-transcripts');
-const { ticketTranscriptChannel } = require('../../Structures/config.json');
+
 const DB = require('../../Structures/Schemas/Ticket');
+const TicketSetupData = require('../../Structures/Schemas/TicketSetup');
 
 module.exports = {
     name: 'interactionCreate',
@@ -11,8 +12,17 @@ module.exports = {
     async execute(interaction) {
         if (!interaction.isButton()) return;
         const { guild, member, customId, channel } = interaction;
-        if (!['close', 'lock', 'unlock'].includes(customId)) return;
-        if (!member.permissions.has('ADMINISTRATOR'))
+        if (!['close', 'lock', 'unlock', 'claim'].includes(customId)) return;
+
+        const TicketSetup = await TicketSetupData.findOne({
+            GuildID: guild.id,
+        });
+        if (!TicketSetup)
+            return interaction.reply({
+                content: 'The data for this system is outdated.',
+            });
+
+        if (!member.roles.cache.find((r) => r.id === TicketSetup.Handlers))
             return interaction.reply({
                 content: 'You do not have permission to do that.',
                 ephemeral: true,
@@ -42,9 +52,12 @@ module.exports = {
                     Embed.setDescription(
                         '🔒 | This ticket has been locked for reviewing.'
                     );
-                    channel.permissionOverwrites.edit(docs.MemberID, {
-                        SEND_MESSAGES: false,
+                    docs.MembersID.forEach((m) => {
+                        channel.permissionOverwrites.edit(m, {
+                            SEND_MESSAGES: false,
+                        });
                     });
+
                     interaction.reply({ embeds: [Embed] });
                     break;
 
@@ -59,8 +72,10 @@ module.exports = {
                         { Locked: false }
                     );
                     Embed.setDescription('🔓 | This ticket has been unlocked.');
-                    channel.permissionOverwrites.edit(docs.MemberID, {
-                        SEND_MESSAGES: true,
+                    docs.MembersID.forEach((m) => {
+                        channel.permissionOverwrites.edit(m, {
+                            SEND_MESSAGES: true,
+                        });
                     });
                     interaction.reply({ embeds: [Embed] });
                     break;
@@ -81,17 +96,11 @@ module.exports = {
                         { Closed: true }
                     );
 
-                    const Member = guild.members.cache.get(docs.MemberID);
                     const Message = await guild.channels.cache
-                        .get(ticketTranscriptChannel)
+                        .get(TicketSetup.Transcripts)
                         .send({
                             embeds: [
-                                Embed.setAuthor(
-                                    Member.user.tag,
-                                    Member.user.displayAvatarURL({
-                                        dynamic: true,
-                                    })
-                                ).setTitle(
+                                Embed.setTitle(
                                     `Transcript Type: ${docs.Type}\nID: ${docs.TicketID}`
                                 ),
                             ],
@@ -108,6 +117,24 @@ module.exports = {
                     setTimeout(() => {
                         channel.delete();
                     }, 10 * 1000);
+                    break;
+                case 'claim':
+                    if (docs.Claimed === true)
+                        return interaction.reply({
+                            content: `This ticket is already been claimed by <@${docs.ClaimedBy}>.`,
+                            ephemeral: true,
+                        });
+
+                    await DB.updateOne(
+                        { ChannelID: channel.id },
+                        { Claimed: true, ClaimedBy: member.id }
+                    );
+
+                    Embed.setDescription(
+                        `✋ | This ticket is now claimed by ${member}`
+                    );
+                    interaction.reply({ embeds: [Embed] });
+
                     break;
             }
         });

@@ -40,7 +40,7 @@ module.exports = async (client, PG, Ascii) => {
                 );
         }
 
-		if (!command.type && !command.description)
+        if (!command.type && !command.description)
             return Table.addRow(
                 command.name,
                 '🔹 Successful',
@@ -56,33 +56,79 @@ module.exports = async (client, PG, Ascii) => {
     console.log(table.toString());
 
     // PERMISSIONS CHECK //
-    client.on('ready', async () => {
-        const mainGuild = await client.guilds.cache.get(config.mainGuild);
+    if (process.env.NODE_ENV.trim() === 'production') {
+        log.info(`EnlX > Commands | Running Production Mode`);
+        log.info(`EnlX > Commands | ${client.commands.size} commands loaded.`);
+        client.guilds.cache.forEach((g) => {
+            g.commands.set(CommandsArray).then(async (command) => {
+                const Roles = (commandName) => {
+                    const cmdPerms = CommandsArray.find(
+                        (c) => c.name === commandName
+                    ).permission;
+                    if (!cmdPerms) return null;
 
-        mainGuild.commands.set(CommandsArray).then(async (command) => {
-            const Roles = (commandName) => {
-                const cmdPerms = CommandsArray.find(
-                    (c) => c.name === commandName
-                ).permission;
-                if (!cmdPerms) return null;
+                    return g.roles.cache
+                        .filter(
+                            (r) => r.permissions.has(cmdPerms) && !r.managed
+                        )
+                        .first(10);
+                };
 
-                return mainGuild.roles.cache
-                    .filter((r) => r.permissions.has(cmdPerms) && !r.managed)
-                    .first(10);
-            };
+                const fullPermissions = command.reduce((accumulator, r) => {
+                    const roles = Roles(r.name);
+                    if (!roles) return accumulator;
 
-            const fullPermissions = command.reduce((accumulator, r) => {
-                const roles = Roles(r.name);
-                if (!roles) return accumulator;
+                    const permissions = roles.reduce((a, r) => {
+                        return [
+                            ...a,
+                            { id: r.id, type: 'ROLE', permission: true },
+                        ];
+                    }, []);
 
-                const permissions = roles.reduce((a, r) => {
-                    return [...a, { id: r.id, type: 'ROLE', permission: true }];
+                    return [...accumulator, { id: r.id, permissions }];
                 }, []);
 
-                return [...accumulator, { id: r.id, permissions }];
-            }, []);
-
-            await mainGuild.commands.permissions.set({ fullPermissions });
+                await g.commands.permissions.set({ fullPermissions });
+            });
         });
-    });
+    } else {
+        client.on('ready', async () => {
+            log.info(`EnlX > Commands | Running Development Mode`);
+            log.info(
+                `EnlX > Commands | ${client.commands.size} commands loaded.`
+            );
+            const mainGuild = await client.guilds.cache.get(config.mainGuild);
+
+            mainGuild.commands.set(CommandsArray).then(async (command) => {
+                const Roles = (commandName) => {
+                    const cmdPerms = CommandsArray.find(
+                        (c) => c.name === commandName
+                    ).permission;
+                    if (!cmdPerms) return null;
+
+                    return mainGuild.roles.cache
+                        .filter(
+                            (r) => r.permissions.has(cmdPerms) && !r.managed
+                        )
+                        .first(10);
+                };
+
+                const fullPermissions = command.reduce((accumulator, r) => {
+                    const roles = Roles(r.name);
+                    if (!roles) return accumulator;
+
+                    const permissions = roles.reduce((a, r) => {
+                        return [
+                            ...a,
+                            { id: r.id, type: 'ROLE', permission: true },
+                        ];
+                    }, []);
+
+                    return [...accumulator, { id: r.id, permissions }];
+                }, []);
+
+                await mainGuild.commands.permissions.set({ fullPermissions });
+            });
+        });
+    }
 };
