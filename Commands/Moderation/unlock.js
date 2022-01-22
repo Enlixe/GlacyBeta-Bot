@@ -28,9 +28,10 @@ module.exports = {
             SEND_MESSAGES: null,
         });
 
-        await DB.deleteOne({ ChannelID: channel.id });
+        if (DB.findOne({ GuildID: guild.id, ChannelID: channel.id }))
+            await DB.deleteOne({ ChannelID: channel.id });
 
-        interaction.reply({
+        return await interaction.reply({
             embeds: [
                 Embed.setColor(color.success).setDescription(
                     '🔓 | Lockdown has been lifted.'

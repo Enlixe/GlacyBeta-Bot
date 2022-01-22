@@ -6,7 +6,7 @@ const DB = require('../Structures/Schemas/Lockdown');
 module.exports = async (client) => {
     DB.find().then(async (documentsArray) => {
         documentsArray.forEach(async (d) => {
-            const channel = client.channels.cache
+            const channel = client.guilds.cache
                 .get(d.GuildID)
                 .channels.cache.get(d.ChannelID);
             if (!channel) return;

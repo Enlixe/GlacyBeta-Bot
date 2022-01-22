@@ -11,6 +11,8 @@ const chalk = require('chalk');
 
 client.commands = new Collection();
 
+const config = require('./config.json');
+
 // ========================================================
 //* Global Variables
 global.color = require('./config.json').colors;
@@ -113,9 +115,11 @@ module.exports = client;
 require('../Systems/GiveawaySys')(client);
 // ========================================================
 //* Events and Commands Handler
-['Events', 'Commands'].forEach((handler) => {
-    require(`./Handlers/${handler}`)(client, PG, Ascii);
-});
+['Events', 'Commands', config.antiCrash ? 'antiCrash' : null].forEach(
+    (handler) => {
+        require(`./Handlers/${handler}`)(client, PG, Ascii);
+    }
+);
 // ========================================================
 
 client.login(process.env.TOKEN);

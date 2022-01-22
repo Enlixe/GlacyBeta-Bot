@@ -23,7 +23,7 @@ module.exports = {
      * @param {CommandInteraction} interaction
      */
     async execute(interaction) {
-        const { channel, author, guild } = interaction;
+        const { channel, author, guild, options } = interaction;
 
         const Reason = options.getString('reason') || 'No reason provided.';
 
@@ -43,15 +43,18 @@ module.exports = {
             SEND_MESSAGES: false,
         });
 
+        const Time = options.getString('time');
+
         interaction.reply({
             embeds: [
                 Embed.setColor(color.error).setDescription(
-                    `🔒 | This channel has been in lockdown for: ${Reason}`
+                    `🔒 | This channel has been in lockdown for: ${
+                        Time ? Time + ' - ' : ''
+                    }${Reason}`
                 ),
             ],
         });
 
-        const Time = options.getString('time');
         if (Time) {
             const ExpireDate = Date.now() + ms(Time);
             DB.create({

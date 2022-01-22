@@ -12,7 +12,7 @@ module.exports = {
     async execute(interaction, client) {
         const { member } = interaction;
 
-        const bVersion = '1.5.0';
+        const bVersion = '1.6.0';
 
         const embed = new MessageEmbed()
             .setTitle('📜 Change Log for ' + client.user.username)
@@ -20,6 +20,10 @@ module.exports = {
             .setColor(0x00ff00)
             .setDescription(`Current **Bot Version**: __${bVersion}__`)
             .addFields(
+                {
+                    name: '1.6.0',
+                    value: `Added ||AntiCrash|| System`,
+                },
                 {
                     name: '1.5.0',
                     value: `Added Multi-Guild support for \`ticket system\`
