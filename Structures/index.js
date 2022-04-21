@@ -10,6 +10,10 @@ const PG = promisify(glob);
 const chalk = require('chalk');
 
 client.commands = new Collection();
+client.buttons = new Collection();
+client.filters = new Collection();
+client.filtersLog = new Collection();
+client.voiceGenerator = new Collection();
 
 const config = require('./config.json');
 
@@ -111,11 +115,14 @@ client.distube = new DisTube(client, {
 });
 module.exports = client;
 // ========================================================
-//* Giveaway System
-require('../Systems/GiveawaySys')(client);
+//* System
+["GiveawaySys", "ChatFilterSys", "LockdownSys"].forEach((system) => {
+    require(`../Systems/${system}`)(client);
+});
+// require('../Systems/GiveawaySys')(client);
 // ========================================================
 //* Events and Commands Handler
-['Events', 'Commands', config.antiCrash ? 'antiCrash' : null].forEach(
+['Events', 'Commands', "Buttons", config.antiCrash ? 'antiCrash' : null].forEach(
     (handler) => {
         require(`./Handlers/${handler}`)(client, PG, Ascii);
     }

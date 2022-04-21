@@ -1,3 +1,5 @@
+const { MessageActionRow, MessageButton } = require("discord.js");
+
 module.exports = {
 	name: "ping",
 	description: "Ping",
@@ -11,6 +13,16 @@ module.exports = {
      * @param {CommandInteraction} interaction
      */
 	execute(interaction) {
-		interaction.reply({ content: "POING" });
+		
+		const row = new MessageActionRow();
+		row.addComponents(
+			new MessageButton()
+			.setCustomId("Ping")
+			.setLabel("Ping")
+			.setStyle("PRIMARY")
+		)
+
+		interaction.reply({ content: "POING", components: [row] });
+
 	},
 };

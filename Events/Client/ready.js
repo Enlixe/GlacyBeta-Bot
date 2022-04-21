@@ -44,10 +44,6 @@ module.exports = {
                 }, 60 * 1000);
             }
         }, 60 * 1000);
-
-        // ========================================================
-        //* Lockdown System
-        require('../../Systems/LockdownSys')(client);
         // ========================================================
         //* Database Connection
         log.info('EnlX > Database | ~ Connecting to database...');
@@ -68,5 +64,10 @@ module.exports = {
                 console.log(err);
             });
         // ========================================================
+        //* Lockdown System
+        require('../../Systems/LockdownSys')(client);
+        // ========================================================
+        //* Chat Filter System
+        require('../../Systems/ChatFilterSys')(client);
     },
 };

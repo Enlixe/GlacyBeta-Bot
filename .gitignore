@@ -1,6 +1,7 @@
 node_modules
 .vscode
 .env
-.eslintrc.json
+.eslintrc*
 .prettierrc.json
 Upload-*.zip
+*.zip
